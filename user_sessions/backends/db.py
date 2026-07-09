@@ -30,6 +30,9 @@ class SessionStore(DBStore):
     # Used in DBStore.load()
     def _get_session_from_db(self):
         s = super()._get_session_from_db()
+        if s is None:
+            self.user_id = None
+            return None
         self.user_id = s.user_id
         # do not overwrite user_agent/ip, as those might have been updated
         if self.user_agent != s.user_agent or self.ip != s.ip:

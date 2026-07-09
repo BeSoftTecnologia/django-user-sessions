@@ -97,3 +97,15 @@ class SessionStoreTest(TestCase):
 
         session = Session.objects.get(pk=self.store.session_key)
         self.assertEqual(session.user_id, None)
+
+    def test_load_missing_session(self):
+        """Cookie com chave inexistente/expirada não deve gerar AttributeError."""
+        store = SessionStore(
+            session_key='0' * 32,
+            user_agent='Python/2.7',
+            ip='127.0.0.1',
+        )
+        data = store.load()
+        self.assertEqual(data, {})
+        self.assertIsNone(store.user_id)
+        self.assertIsNone(store.session_key)
