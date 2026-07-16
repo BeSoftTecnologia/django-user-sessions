@@ -40,8 +40,19 @@ class SessionStore(DBStore):
         return s
 
     def create(self):
+        # Preserva dados já carregados em memória. O cycle_key() do Django
+        # restaura o cache depois do create(); o caminho flush()+login()
+        # (ex.: loginas) não restaura. Se _session_cache ficar como {},
+        # o próximo acesso NÃO recarrega do banco e o save() seguinte
+        # sobrescreve a sessão autenticada com payload vazio.
+        cached = getattr(self, '_session_cache', None)
+        user_id = self.user_id
         super().create()
-        self._session_cache = {}
+        if cached:
+            self._session_cache = cached
+            self.user_id = user_id
+        else:
+            self._session_cache = {}
 
     # Used in DBStore.save()
     def create_model_instance(self, data):
